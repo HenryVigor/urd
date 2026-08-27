@@ -1,0 +1,17 @@
+name: Script format analysis
+on: pull_request
+jobs:
+  format_check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: '9.0.x'
+      - name: Run dotnet format
+        run: |
+          if [ -f 'Urd.csproj' ]; then
+            dotnet format 'Urd.csproj' --exclude 'addons' --verify-no-changes
+          else
+            echo "No .csproj file found, skipping format check."
+          fi
