@@ -447,3 +447,50 @@ Resizetizer.Outputs/
 
 # undefined
 undefined
+
+## ---------------------------------------------------
+## Vue app additions
+## ---------------------------------------------------
+
+# Ignore generated resources
+Resources/Raw/wwwroot
+
+# Logs
+vue-app/logs
+vue-app/*.log
+vue-app/npm-debug.log*
+vue-app/yarn-debug.log*
+vue-app/yarn-error.log*
+vue-app/pnpm-debug.log*
+vue-app/lerna-debug.log*
+
+vue-app/node_modules
+vue-app/.DS_Store
+vue-app/dist
+vue-app/dist-ssr
+vue-app/coverage
+vue-app/*.local
+
+# Editor directories and files
+vue-app/.vscode/*
+vue-app/!.vscode/extensions.json
+vue-app/.idea
+vue-app/*.suo
+vue-app/*.ntvs*
+vue-app/*.njsproj
+vue-app/*.sln
+vue-app/*.sw?
+
+vue-app/*.tsbuildinfo
+
+vue-app/.eslintcache
+
+# Cypress
+vue-app//cypress/videos/
+vue-app//cypress/screenshots/
+
+# Vitest
+vue-app/__screenshots__/
+
+# Vite
+vue-app/*.timestamp-*-*.mjs
