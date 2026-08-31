@@ -70,4 +70,7 @@
 		<PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="10.0.0" />
 	</ItemGroup>
 
+    <Target Name="AdbReverseForVite" BeforeTargets="BeforeBuild" Condition="'$(Configuration)'=='Debug' And $(TargetFramework.Contains('android'))">
+        <Exec Command="&quot;$(AndroidSdkDirectory)\platform-tools\adb.exe&quot; $(AdbTarget) reverse tcp:5173 tcp:5173" />
+    </Target>
 </Project>
