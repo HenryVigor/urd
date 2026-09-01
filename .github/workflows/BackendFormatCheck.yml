@@ -1,13 +1,18 @@
-name: Script format analysis
+name: Backend Format Check
 on: pull_request
 jobs:
-  format_check:
+  dotnet_format:
+    name: Check formatting
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-dotnet@v3
         with:
-          dotnet-version: '9.0.x'
+          dotnet-version: '10.0.x'
+
+      - name: Install MAUI workload
+        run: dotnet workload install maui-android
+
       - name: Run dotnet format
         run: |
           if [ -f 'Urd.csproj' ]; then
