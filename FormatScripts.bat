@@ -1,1 +1,0 @@
-dotnet format "Urd.csproj"

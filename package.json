@@ -1,0 +1,7 @@
+{
+  "scripts": {
+    "format": "npm run format:backend && npm run format:frontend",
+    "format:backend": "dotnet format",
+    "format:frontend": "npm --prefix vue-app run format"
+  }
+}
