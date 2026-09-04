@@ -6,18 +6,10 @@ public partial class App : Application {
     }
 
     protected override Window CreateWindow(IActivationState? activationState) {
-        return new Window(new AppShell());
-    }
+        Window window = new(new AppShell());
+        window.Created += (_, _) => Api.LocalServer.Start();
+        window.Destroying += (_, _) => Api.LocalServer.Stop();
 
-    protected override void OnStart() {
-        Api.LocalServer.Start();
-    }
-
-    protected override void OnSleep() {
-        Api.LocalServer.Stop();
-    }
-
-    protected override void OnResume() {
-        Api.LocalServer.Start();
+        return window;
     }
 }
