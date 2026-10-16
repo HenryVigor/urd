@@ -15,7 +15,7 @@ public class MainActivity : MauiAppCompatActivity {
         RequestBatteryOptimizationExemption();
         RequestNotificationPermission();
 
-        Global.StartService(typeof(FolderWatcherService), this);
+        FolderWatcherService.Start();
     }
 
     void RequestBatteryOptimizationExemption() {
@@ -24,7 +24,9 @@ public class MainActivity : MauiAppCompatActivity {
         PowerManager powerManager = (PowerManager)GetSystemService(PowerService)!;
 
         if (!powerManager.IsIgnoringBatteryOptimizations(PackageName)) {
-            Intent intent = new(Settings.ActionRequestIgnoreBatteryOptimizations);
+            Intent intent = new(
+                Settings.ActionRequestIgnoreBatteryOptimizations
+            );
             intent.SetData(Android.Net.Uri.Parse($"package:{PackageName}"));
             StartActivity(intent);
         }

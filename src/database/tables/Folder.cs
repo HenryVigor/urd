@@ -1,4 +1,9 @@
 using SQLite;
+using SQLiteNetExtensions.Attributes;
+
+// TODO: Consider option to mark folders as untracked. This might be
+// counterintuitive, but it also may be useful for the user to be able to pause
+// tracking in all of a folder's files.
 
 [Table("folders")]
 public class Folder {
@@ -10,24 +15,11 @@ public class Folder {
     public string Name { get; set; }
 
     [Column("path")]
-    [Unique]
     public string Path { get; set; }
 
-    public static void Insert(Folder folder) {
-        Global.Database.RunInTransaction(() => {
-            // Create database record for folder
-            Global.Database.Insert(folder);
+    [Column("archived")]
+    public bool Archived { get; set; } = false;
 
-            // Create database records for folder's current files
-            IEnumerable<File> files = Directory
-                .GetFiles(folder.Path)
-                .Select(path => new File {
-                    FolderId = folder.Id,
-                    Name = System.IO.Path.GetFileName(path),
-                    FilePath = path
-                })
-            ;
-            Global.Database.InsertAll(files);
-        });
-    }
+    [OneToMany(CascadeOperations = CascadeOperation.CascadeDelete | CascadeOperation.CascadeRead)]
+    public File[] Files { get; set; }
 }

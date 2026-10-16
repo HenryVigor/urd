@@ -2,11 +2,12 @@ using System.Text.Json;
 using CommunityToolkit.Maui.Storage;
 using EmbedIO;
 using EmbedIO.Routing;
+using SQLiteNetExtensions.Extensions;
 
 public class FoldersController : Controller {
     [Route(HttpVerbs.Get, "/folders")]
     public async Task Index() {
-        List<Folder> folders = Global.Database.Table<Folder>().ToList();
+        List<Folder> folders = Database.Connection.Table<Folder>().ToList();
         await SendJson(folders);
     }
 
@@ -16,28 +17,18 @@ public class FoldersController : Controller {
             .DeserializeAsync<CreateFolderRequest>(Request.InputStream)
         ;
 
-        if (
-            data == null ||
-            string.IsNullOrWhiteSpace(data.name) ||
-            string.IsNullOrWhiteSpace(data.path)
-        ) {
+        if (data == null || string.IsNullOrWhiteSpace(data.path)) {
             await SendBadRequest();
             return;
         }
 
         try {
-            Folder.Insert(new() {
-                Name = data.name,
-                Path = data.path,
-            });
+            Backup.AddFolder(data.path);
         }
-        catch (Exception e) {
-            System.Diagnostics.Debug.WriteLine($"Failed to create folder: {e}");
+        catch {
             await SendInternalServerError();
             return;
         }
-
-        FolderWatcherService.StartWatching(data.path);
 
         await SendOk();
     }
@@ -66,27 +57,92 @@ public class FoldersController : Controller {
             return;
         }
 
-        Folder? folder = Global
-            .Database
-            .Table<Folder>()
-            .FirstOrDefault(f => f.Id == folderId)
-        ;
+        Folder? folder = Database.Connection.FindWithChildren<Folder>(folderId);
 
         if (folder == null) {
             await SendNotFound();
             return;
         }
 
-        List<File> files = Global
-            .Database
-            .Table<File>()
-            .Where(file => !file.Deleted)
-            .Where(file => file.FolderId == folder.Id)
-            .ToList()
+        await SendJson(new { folder });
+    }
+
+    [Route(HttpVerbs.Patch, "/folders/{folder}")]
+    public async Task Update() {
+        UpdateFolderRequest? data = await JsonSerializer
+            .DeserializeAsync<UpdateFolderRequest>(Request.InputStream)
         ;
 
-        await SendJson(new { folder, files });
+        if (data == null || string.IsNullOrWhiteSpace(data.name)) {
+            await SendBadRequest();
+            return;
+        }
+
+        int folderId;
+
+        try {
+            folderId = int.Parse(Route["folder"]);
+        }
+        catch {
+            await SendBadRequest();
+            return;
+        }
+
+        Folder? folder = Database.Connection.Find<Folder>(folderId);
+
+        if (folder == null) {
+            await SendNotFound();
+            return;
+        }
+
+        try {
+            folder.Name = data.name;
+            Database.Connection.Update(folder);
+        }
+        catch {
+            await SendInternalServerError();
+            return;
+        }
+
+        await SendOk();
+    }
+
+    [Route(HttpVerbs.Delete, "/folders/{folder}")]
+    public async Task Destroy() {
+        int folderId;
+
+        try {
+            folderId = int.Parse(Route["folder"]);
+        }
+        catch {
+            await SendBadRequest();
+            return;
+        }
+
+        Folder? folder = Database.Connection.Find<Folder>(folderId);
+
+        if (folder == null) {
+            await SendNotFound();
+            return;
+        }
+
+        if (!folder.Archived) {
+            await SendBadRequest();
+            return;
+        }
+
+        try {
+            Backup.Delete(folder);
+        }
+        catch {
+            await SendInternalServerError();
+            return;
+        }
+
+        await SendOk();
     }
 
     public sealed record CreateFolderRequest(string name, string path);
+
+    public sealed record UpdateFolderRequest(string name);
 }

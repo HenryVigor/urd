@@ -3,11 +3,17 @@ using EmbedIO;
 using EmbedIO.WebApi;
 
 public abstract class Controller : WebApiController {
+    private static readonly JsonSerializerOptions JsonOptions = new() {
+        ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler
+            .IgnoreCycles
+        ,
+    };
+
     protected async Task SendJson(object data) {
         Response.ContentType = "application/json";
 
         await HttpContext.SendStringAsync(
-            JsonSerializer.Serialize(data),
+            JsonSerializer.Serialize(data, JsonOptions),
             "application/json",
             System.Text.Encoding.UTF8
         );
@@ -28,8 +34,8 @@ public abstract class Controller : WebApiController {
         await SendJson(new { error = "Not Found" });
     }
 
-    protected async Task SendInternalServerError() {
+    protected async Task SendInternalServerError(Exception? e = null) {
         Response.StatusCode = 500;
-        await SendJson(new { error = "Internal Server Error" });
+        await SendJson(new { error = e?.Message ?? "Internal Server Error" });
     }
 }

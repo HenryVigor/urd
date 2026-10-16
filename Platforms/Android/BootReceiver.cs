@@ -5,11 +5,8 @@ using Android.Content;
 [IntentFilter([Intent.ActionBootCompleted])]
 public class BootReceiver : BroadcastReceiver {
     public override void OnReceive(Context? context, Intent? intent) {
-        if (
-            intent?.Action != Intent.ActionBootCompleted ||
-            context == null
-        ) return;
+        if (intent?.Action != Intent.ActionBootCompleted) return;
 
-        Global.StartService(typeof(FolderWatcherService), context);
+        FolderWatcherService.Start();
     }
 }
