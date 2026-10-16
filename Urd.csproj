@@ -23,10 +23,10 @@
 		<ApplicationTitle>Urd</ApplicationTitle>
 
 		<!-- App Identifier -->
-		<ApplicationId>com.companyname.urd</ApplicationId>
+		<ApplicationId>com.hank.urd</ApplicationId>
 
 		<!-- Versions -->
-		<ApplicationDisplayVersion>1.0</ApplicationDisplayVersion>
+		<ApplicationDisplayVersion>0.1</ApplicationDisplayVersion>
 		<ApplicationVersion>1</ApplicationVersion>
 
 		<!-- To develop, package, and publish an app to the Microsoft Store, see: https://aka.ms/MauiTemplateUnpackaged -->
@@ -59,9 +59,26 @@
 
 	<ItemGroup>
 		<PackageReference Include="EmbedIO" Version="3.5.2" />
-		<PackageReference Include="Microsoft.Maui.Controls" Version="$(MauiVersion)" />
+		<PackageReference Include="CommunityToolkit.Maui" Version="15.0.1" />
+		<PackageReference Include="Microsoft.Maui.Controls" Version="10.0.90" />
 		<PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="10.0.0" />
+		<PackageReference Include="Octopus.Octodiff" Version="2.0.549" />
+		<PackageReference Include="sqlite-net-pcl" Version="1.11.285" />
+		<PackageReference Include="SQLiteNetExtensions" Version="2.1.0" />
+        <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
 	</ItemGroup>
+
+    <ItemGroup>
+        <!-- Prevent .NET from scanning or locking npm files during build -->
+        <Compile Remove="vue-app\node_modules\**\*" />
+        <EmbeddedResource Remove="vue-app\node_modules\**\*" />
+        <None Remove="vue-app\node_modules\**\*" />
+        <Content Remove="vue-app\node_modules\**\*" />
+    </ItemGroup>
+
+    <PropertyGroup>
+        <DefaultItemExcludes>$(DefaultItemExcludes);vue-app\node_modules\**</DefaultItemExcludes>
+    </PropertyGroup>
 
     <Target Name="AdbReverseForVite" BeforeTargets="BeforeBuild" Condition="'$(Configuration)'=='Debug' And $(TargetFramework.Contains('android'))">
         <Exec Command="&quot;$(AndroidSdkDirectory)\platform-tools\adb.exe&quot; $(AdbTarget) reverse tcp:5173 tcp:5173" />

@@ -2,9 +2,7 @@ using System.Reflection;
 using EmbedIO;
 using EmbedIO.WebApi;
 
-namespace Api;
-
-public static class LocalServer {
+public static class ApiServer {
     static WebServer? Server;
 
     public static void Start() => Task.Run(async () => StartAsync());
