@@ -1,6 +1,10 @@
 using CommunityToolkit.Maui;
 using Microsoft.Extensions.Logging;
 
+#if MAUI_DEVFLOW
+using Microsoft.Maui.DevFlow.Agent;
+#endif
+
 namespace Urd;
 
 public static class MauiProgram {
@@ -14,6 +18,10 @@ public static class MauiProgram {
             })
             .UseMauiCommunityToolkit()
         ;
+
+#if MAUI_DEVFLOW
+        builder.AddMauiDevFlowAgent();
+#endif
 
 #if DEBUG
         builder.Logging.AddDebug();
