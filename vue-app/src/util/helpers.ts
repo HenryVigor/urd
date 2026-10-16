@@ -10,7 +10,7 @@ export async function get(path: string) {
     return response.json()
 }
 
-export async function post(path: string, body: Object) {
+export async function post(path: string, body: object) {
     const response = await fetch(`http://localhost:5001/api/${path}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

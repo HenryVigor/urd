@@ -6,15 +6,15 @@
 
     <div>{{ folder }}</div>
 
-    <div v-for="file in files" class="border rounded">
+    <div v-for="file in files" :key="file.Id" class="border rounded">
         <router-link :to="`/files/${file.Id}`">{{ file.Name }}</router-link>
     </div>
 </template>
 
 <script setup>
-import { get } from '@/util/helpers'
 import { onMounted, ref } from 'vue'
 import { useRoute } from 'vue-router'
+import { get } from '@/util/helpers'
 
 const route = useRoute()
 

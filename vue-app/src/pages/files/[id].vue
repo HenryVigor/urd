@@ -10,9 +10,9 @@
 </template>
 
 <script setup>
-import { get } from '@/util/helpers'
 import { onMounted, ref } from 'vue'
 import { useRoute } from 'vue-router'
+import { get } from '@/util/helpers'
 
 const file = ref(null)
 
