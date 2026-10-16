@@ -24,8 +24,7 @@ public static class LocalServer {
             RegisterAllControllers(module);
 
             await Server.WithCors().WithModule(module).RunAsync();
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             System.Diagnostics.Debug.WriteLine(
                 $"Local server error: {e.Message}"
             );

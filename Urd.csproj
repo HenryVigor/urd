@@ -63,6 +63,8 @@
 		<PackageReference Include="Microsoft.Maui.Controls" Version="10.0.90" />
 		<PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="10.0.0" />
 		<PackageReference Include="sqlite-net-pcl" Version="1.11.285" />
+		<PackageReference Include="SQLiteNetExtensions" Version="2.1.0" />
+        <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
 	</ItemGroup>
 
     <Target Name="AdbReverseForVite" BeforeTargets="BeforeBuild" Condition="'$(Configuration)'=='Debug' And $(TargetFramework.Contains('android'))">

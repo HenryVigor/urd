@@ -8,8 +8,7 @@ public class FilesController : Controller {
 
         try {
             fileId = int.Parse(Route["file"]);
-        }
-        catch {
+        } catch {
             await SendBadRequest();
             return;
         }

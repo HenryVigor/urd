@@ -135,8 +135,7 @@ public class FolderWatcherService : Service {
                 RemoveWatcher(path);
                 AddWatcher(path);
                 UpdateNotification();
-            }
-            catch (Exception restartError) {
+            } catch (Exception restartError) {
                 Android.Util.Log.Error(
                     "FolderWatcher",
                     $"Could not restart watcher for {path}: {restartError}"

@@ -26,4 +26,7 @@ jobs:
         run: npm ci
 
       - name: Run Prettier check
-        run: npx prettier --check "src/**/*.{js,jsx,ts,tsx,vue,css,scss,json}"
+        run: npx prettier --check "src/"
+
+      - name: ESLint
+        run: npx eslint .

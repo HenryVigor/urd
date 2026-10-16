@@ -30,8 +30,7 @@ public class FoldersController : Controller {
                 Name = data.name,
                 Path = data.path,
             });
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             System.Diagnostics.Debug.WriteLine($"Failed to create folder: {e}");
             await SendInternalServerError();
             return;
@@ -60,8 +59,7 @@ public class FoldersController : Controller {
 
         try {
             folderId = int.Parse(Route["folder"]);
-        }
-        catch {
+        } catch {
             await SendBadRequest();
             return;
         }
