@@ -2,8 +2,11 @@
     <layout>
         <template #header-left>
             <icon-button
-                v-if="mode == 'tracked' || route.query.archiveOnly"
-                :to="{ path: '/folders', query: { mode: route.query.mode } }"
+                v-if="mode == 'tracked' || folder.Archived"
+                :to="{
+                    path: '/folders',
+                    query: { mode: folder.Archived ? 'archived' : 'tracked' },
+                }"
                 :icon="faCircleLeft"
                 icon-class="text-2xl text-blue-800"
             />
@@ -38,7 +41,7 @@
             </icon-button>
         </template>
 
-        <template v-if="folder == null">
+        <template v-if="folder?.Files == null">
             <load-indicator
                 v-if="longLoad"
                 :icon="faFile"
@@ -52,7 +55,7 @@
             <file-link-scroller
                 v-if="archivedFiles.length"
                 :files="archivedFiles"
-                :archive-only="route.query.archiveOnly"
+                :folder="folder"
                 @destroy="_destroy"
                 @restore="_restore"
                 @rename="_rename"
@@ -70,6 +73,7 @@
             <file-link-scroller
                 v-if="trackedFiles.length"
                 :files="trackedFiles"
+                :folder="folder"
                 @rename="_rename"
             />
 
@@ -84,11 +88,6 @@
 </template>
 
 <script setup>
-import FileLinkScroller from '@/components/file-link-scroller.vue'
-import IconButton from '@/components/icon-button.vue'
-import LoadIndicator from '@/components/load-indicator.vue'
-import Layout from '@/layouts/layout.vue'
-import { get } from '@/util/helpers'
 import { faFile } from '@fortawesome/free-regular-svg-icons'
 import {
     faBoxOpen,
@@ -97,16 +96,21 @@ import {
 } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import _ from 'lodash'
-import { computed, onMounted, onUnmounted, ref } from 'vue'
+import { computed, nextTick, onMounted, onUnmounted, ref } from 'vue'
 import { useRoute } from 'vue-router'
+import FileLinkScroller from '@/components/file-link-scroller.vue'
+import IconButton from '@/components/icon-button.vue'
+import LoadIndicator from '@/components/load-indicator.vue'
+import Layout from '@/layouts/layout.vue'
+import { get } from '@/util/helpers'
 import 'vue-virtual-scroller/dist/vue-virtual-scroller.css'
 
 const route = useRoute()
 const folderId = route.params.id
 
-const folder = ref(null)
+const cachedFolder = window.history.state?.folder
+const folder = ref(cachedFolder?.Id === Number(folderId) ? cachedFolder : null)
 const refreshing = ref(false)
-const mode = ref(route.query.mode ?? 'tracked')
 const longLoad = ref(false)
 
 let refreshTimer = null
@@ -114,19 +118,28 @@ let refreshTimer = null
 const trackedFiles = computed(() => {
     return _.filter(folder.value?.Files, { Archived: false })
 })
+
 const archivedFiles = computed(() => {
     return _.filter(folder.value?.Files, { Archived: true })
 })
+
+const initialMode = computed(() => {
+    if (route.query.mode) return route.query.mode
+
+    return folder.value?.Archived ? 'archived' : 'tracked'
+})
+
+const mode = ref(initialMode.value)
 
 onMounted(async () => {
     let loadIndicatorTimer
 
     try {
-        loadIndicatorTimer = setTimeout(() => longLoad.value = true, 300)
+        loadIndicatorTimer = setTimeout(() => (longLoad.value = true), 300)
 
         await refresh()
     } finally {
-        mode.value = folder.value.Archived ? 'archived' : 'tracked'
+        nextTick()
         clearTimeout(loadIndicatorTimer)
     }
 })

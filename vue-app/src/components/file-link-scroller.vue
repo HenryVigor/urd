@@ -9,8 +9,23 @@
             :current-icon="faFileLines"
             :archived-icon="faFileZipper"
             route-prefix="files"
+            :state="{
+                file: {
+                    Id: file.Id,
+                    Name: file.Name,
+                    Path: file.Path,
+                    Archived: file.Archived,
+                    Folder: folder
+                        ? {
+                              Id: folder.Id,
+                              Name: folder.Name,
+                              Path: folder.Path,
+                              Archived: folder.Archived,
+                          }
+                        : null,
+                },
+            }"
             hide-archive-button
-            :archive-only="archiveOnly"
             @destroy="$emit('destroy', file)"
             @restore="$emit('restore', file)"
             @rename="$emit('rename', file, $event)"
@@ -19,16 +34,19 @@
 </template>
 
 <script setup>
-import { faFileLines, faFileZipper } from '@fortawesome/free-solid-svg-icons';
-import ListLinkScroller from './list-link-scroller.vue';
-import ListLink from './list-link.vue';
+import { faFileLines, faFileZipper } from '@fortawesome/free-solid-svg-icons'
+import ListLinkScroller from './list-link-scroller.vue'
+import ListLink from './list-link.vue'
 
 defineProps({
     files: {
         type: Array,
         required: true,
     },
-    archiveOnly: Boolean,
+    folder: {
+        type: Object,
+        default: null,
+    },
 })
 
 defineEmits(['destroy', 'restore', 'rename'])

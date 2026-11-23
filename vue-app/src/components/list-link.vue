@@ -1,5 +1,6 @@
 <!-- TODO: Ensure updating indicators show up on correct list links when list changes -->
 <!-- TODO: Keep folder in list after restoring until all files are also restored -->
+<!-- TODO: Remove systemName -->
 <template>
     <div class="h-10">
         <!-- Delete mode -->
@@ -8,6 +9,7 @@
             @cancel="mode = ''"
             @confirm="destroy"
         >
+            <!-- TODO: Marquee here? -->
             <div
                 class="w-full text-lg font-bold flex justify-center items-center
                     border rounded"
@@ -22,6 +24,7 @@
             @cancel="mode = ''"
             @confirm="archive"
         >
+            <!-- TODO: Marquee here? -->
             <div
                 class="w-full text-lg flex justify-center items-center border
                     rounded"
@@ -36,6 +39,7 @@
             @cancel="mode = ''"
             @confirm="restore"
         >
+            <!-- TODO: Marquee here? -->
             <div
                 class="w-full text-lg flex justify-center items-center border
                     rounded"
@@ -109,13 +113,11 @@
             />
 
             <router-link
-                :to="{
-                    path: `/${routePrefix}/${id}`,
-                    query: { mode: nextMode, archiveOnly: archiveOnly },
-                }"
+                :to="{ path: `/${routePrefix}/${id}`, state: state }"
                 class="w-full px-1 border rounded flex items-center
                     justify-between"
             >
+                <!-- TODO: Marquee here -->
                 <div class="flex items-center gap-4">
                     <font-awesome-icon
                         :icon="archived ? archivedIcon : currentIcon"
@@ -123,7 +125,7 @@
                         :class="archived ? 'text-gray-600' : 'text-blue-800'"
                     />
 
-                    <div class="text-lg">{{ name }}</div>
+                    <div class="text-lg font-semibold">{{ name }}</div>
                 </div>
 
                 <div class="flex items-center gap-8">
@@ -169,8 +171,6 @@ const props = defineProps({
         type: String,
         required: true,
     },
-    archived: Boolean,
-    restorable: Boolean,
     currentIcon: {
         type: Object,
         required: true,
@@ -183,14 +183,15 @@ const props = defineProps({
         type: String,
         required: true,
     },
-    nextMode: {
-        type: String,
-        default: null,
+    state: {
+        type: Object,
+        default: () => {},
     },
+    archived: Boolean,
+    restorable: Boolean,
     hideSystemName: Boolean,
     hideArchiveButton: Boolean,
     hideRestoreButton: Boolean,
-    archiveOnly: Boolean,
 })
 
 const emit = defineEmits(['destroy', 'archive', 'restore', 'rename'])

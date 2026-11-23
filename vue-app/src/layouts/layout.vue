@@ -13,8 +13,14 @@
             </div>
         </div>
 
-        <div class="min-h-0 p-2 flex grow">
+        <div class="min-h-0 flex grow" :class="noPadding ? '' : 'p-2'">
             <slot />
         </div>
     </div>
 </template>
+
+<script setup>
+defineProps({
+    noPadding: Boolean,
+})
+</script>

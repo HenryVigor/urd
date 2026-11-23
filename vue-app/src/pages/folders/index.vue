@@ -59,8 +59,6 @@
             <folder-link-scroller
                 v-if="archivedFolders.length"
                 :folders="archivedFolders"
-                next-mode="archived"
-                archive-only
                 @destroy="_destroy"
                 @restore="_restore"
                 @rename="_rename"
@@ -86,11 +84,6 @@
 </template>
 
 <script setup>
-import FolderLinkScroller from '@/components/folder-link-scroller.vue'
-import IconButton from '@/components/icon-button.vue'
-import LoadIndicator from '@/components/load-indicator.vue'
-import Layout from '@/layouts/layout.vue'
-import { get, post } from '@/util/helpers'
 import { faFolder } from '@fortawesome/free-regular-svg-icons'
 import {
     faBoxOpen,
@@ -102,6 +95,11 @@ import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import _ from 'lodash'
 import { computed, nextTick, onMounted, onUnmounted, ref } from 'vue'
 import { useRoute } from 'vue-router'
+import FolderLinkScroller from '@/components/folder-link-scroller.vue'
+import IconButton from '@/components/icon-button.vue'
+import LoadIndicator from '@/components/load-indicator.vue'
+import Layout from '@/layouts/layout.vue'
+import { get, post } from '@/util/helpers'
 import 'vue-virtual-scroller/dist/vue-virtual-scroller.css'
 
 const route = useRoute()
@@ -123,7 +121,7 @@ onMounted(async () => {
     let loadIndicatorTimer
 
     try {
-        loadIndicatorTimer = setTimeout(() => longLoad.value = true, 300)
+        loadIndicatorTimer = setTimeout(() => (longLoad.value = true), 300)
 
         await refresh()
     } finally {
