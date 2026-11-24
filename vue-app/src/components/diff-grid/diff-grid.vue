@@ -363,9 +363,9 @@ function positionBranches(data) {
 
         // Extend spacers that belong to child branches
         for (let j = start; j <= end; j++) {
-            const nextRowDiffs = data[i + 1].diffs
+            const nextRowDiffs = data[i + 1]?.diffs
 
-            if (nextRowDiffs[j]?.spacer) {
+            if (nextRowDiffs?.[j]?.spacer) {
                 for (let ii = i; ii > newRow; ii--) {
                     data[ii].diffs[j] = {
                         connections: nextRowDiffs[j].connections,
