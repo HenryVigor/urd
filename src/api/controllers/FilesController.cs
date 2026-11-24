@@ -122,22 +122,23 @@ public class FilesController : Controller {
             return;
         }
 
-        File? file = Database.Connection.Find<File>(fileId);
+        File? file = Database.Connection.FindWithChildren<File>(fileId);
 
         if (file == null) {
             await SendNotFound();
             return;
         }
 
-        FileDiff[] diffs = Database.Connection
-            .Table<FileDiff>()
-            .Where(diff => diff.FileId == file.Id)
-            .ToArray()
-        ;
+        if (file.Diffs == null) {
+            await SendInternalServerError(new Exception(
+                "Something went wrong retrieving the file's diffs"
+            ));
+            return;
+        }
 
         Branch[] branches;
-        if (diffs.Length > 0) {
-            string diffIds = string.Join(',', diffs.Select(diff => diff.Id));
+        if (file.Diffs.Length != 0) {
+            string diffIds = string.Join(',', file.Diffs.Select(diff => diff.Id));
             string query = "SELECT branches.* " +
                 "FROM branches " +
                 "JOIN file_diffs ON file_diffs.id = branches.first_diff_id " +
@@ -147,7 +148,7 @@ public class FilesController : Controller {
             branches = Database.Connection.Query<Branch>(query).ToArray();
         } else branches = [];
 
-        await SendJson(new { file, diffs, branches });
+        await SendJson(new { file });
     }
 
     [Route(HttpVerbs.Delete, "/files/{file}")]

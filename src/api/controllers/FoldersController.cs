@@ -167,7 +167,7 @@ public class FoldersController : Controller {
         }
 
         try {
-            Backup.Restore(folder);
+            await Backup.Restore(folder);
         } catch {
             await SendInternalServerError();
             return;
