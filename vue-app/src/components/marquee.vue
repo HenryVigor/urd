@@ -5,7 +5,7 @@
         <span
             ref="contentEl"
             class="inline-block"
-            :class="{ 'branch-marquee': overflow > 0 }"
+            :class="{ 'marquee': overflow > 0 }"
             :style="{
                 '--marquee-distance': `-${overflow}px`,
                 '--marquee-duration': `${duration}s`,
@@ -46,18 +46,18 @@ function measure() {
 </script>
 
 <style scoped>
-.branch-marquee {
-    animation: branch-marquee var(--marquee-duration) ease-in-out infinite
+.marquee {
+    animation: marquee var(--marquee-duration) ease-in-out infinite
         alternate;
 }
 
 @media (prefers-reduced-motion: reduce) {
-    .branch-marquee {
+    .marquee {
         animation: none;
     }
 }
 
-@keyframes branch-marquee {
+@keyframes marquee {
     0%,
     15% {
         transform: translateX(0);

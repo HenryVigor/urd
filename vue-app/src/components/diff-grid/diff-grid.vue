@@ -1,5 +1,5 @@
 <template>
-    <div ref="scrollEl" class="h-full overflow-auto">
+    <div ref="scrollEl" class="w-full h-full overflow-auto">
         <div
             class="relative"
             :style="{
@@ -23,34 +23,30 @@
                 />
             </svg>
 
+            <!-- Branch labels -->
+            <branch-label
+                v-for="branchLabel in branchLabels"
+                :key="branchLabel.key"
+                :value="branchLabel"
+            />
+
+            <!-- Dates -->
+            <date
+                v-for="date in dates"
+                :key="date.key"
+                :value="date"
+            />
+
             <!-- Diff cells -->
-            <template v-for="cell in visibleCells" :key="cell.key">
-                <!-- <marquee
-                    v-if="cell.branchName"
-                    :text="cell.branchName"
-                    class="absolute top-0 left-0 text-xs font-bold italic"
-                    :style="cell.branchStyle"
-                >
-                    {{ cell.branchName }}
-                </marquee> -->
-
-                <div class="absolute -top-3 left-0" :style="cell.dateStyle">{{ cell.branchLength }}, {{ cell.branchTrailingSpace }}</div>
-
-                <date
-                    v-if="cell.showDate"
-                    :date="cell.diff.CreatedAt"
-                    class="absolute top-0 left-0 text-center"
-                    :style="cell.dateStyle"
-                />
-
-                <diff-node
-                    :diff="cell.diff"
-                    :size="diffSize"
-                    :head="cell.diff.Id == headDiffId"
-                    class="absolute top-0 left-0"
-                    :style="cell.nodeStyle"
-                />
-            </template>
+            <diff-node
+                v-for="cell in visibleCells"
+                :key="cell.key"
+                :diff="cell.diff"
+                :size="diffSize"
+                :head="cell.diff.Id == headDiffId"
+                class="absolute top-0 left-0"
+                :style="cell.style"
+            />
         </div>
     </div>
 </template>
@@ -62,6 +58,9 @@ import moment from 'moment'
 import { computed, ref } from 'vue'
 import Date from './date.vue'
 import DiffNode from './diff-node.vue'
+import StickyRail from '../sticky-rail.vue'
+import Marquee from '../marquee.vue'
+import BranchLabel from './branch-label.vue'
 
 const props = defineProps({
     diffs: {
@@ -87,15 +86,125 @@ const cellStrideY = cellHeight + cellGap
 
 const scrollEl = ref(null)
 
-const diffsArray = computed(() => {
+const diffsArrayWithSpacers = computed(() => {
     if (!props.diffs.length || !props.branches.length) return []
-
+    
     let data = mapDiffsToBranchDataObjects()
     data = getSortableBranchData(data)
     data = sortBranches(data)
     data = positionBranches(data)
-
+    
     return data
+})
+
+const diffsArray = computed(() => {
+    // Remove spacers
+    return diffsArrayWithSpacers.value.map((row) => ({
+        key: row.ids[0],
+        diffs: row.diffs.map(diff => diff && !diff.spacer ? diff : null),
+    }))
+})
+
+const branchLabels = computed(() => {
+    const value = []
+
+    diffsArrayWithSpacers.value.forEach((row, iRow) => {
+        row.diffs.forEach((diff, iDiff) => {
+            if (!diff || diff.spacer) return
+
+            const previousDiff = row.diffs[iDiff - 1]
+
+            if (iDiff != 0 && !previousDiff.spacer) return
+
+            // Get branch info
+            const branch = _.find(props.branches, { FirstDiffId: diff.Id })
+
+            // Name
+            const name = branch ? branch.Name : ''
+
+            // Slide limit
+            let i = iDiff + 1
+
+            while (true) {
+                const cell = row.diffs[i]
+
+                if (!cell || cell.spacer) break
+
+                i++
+            }
+            const slideLimit = (i - iDiff - 1) * cellStrideX
+
+            // Width
+            for (; !row.diffs[i] && i < row.diffs.length; i++) {}
+            const width = (i == row.diffs.length)
+                ? '100%'
+                : `${(i - iDiff) * cellStrideX}px`
+
+            // Position
+            const positionX = iDiff * cellStrideX
+            const positionY = iRow * cellStrideY - 26
+
+            value.push({
+                key: branch.Id,
+                name,
+                slideLimit,
+                style: {
+                    width,
+                    transform: `translate(${positionX}px, ${positionY}px)`,
+                },
+            })
+        })
+    })
+
+    return value
+})
+
+const dates = computed(() => {
+    const value = []
+
+    diffsArrayWithSpacers.value.forEach((row, iRow) => {
+        // Get days in row
+        for (let i = 0; i < row.diffs.length;) {
+            const diff = row.diffs[i]
+
+            if (!diff || diff.spacer) {
+                i++
+                continue
+            }
+
+            // Get next day
+            let date = moment(row.diffs[i].CreatedAt)
+            let dateStart = i++
+            
+            do {
+                const diff = row.diffs[i]
+
+                if (
+                    !diff ||
+                    diff.spacer ||
+                    !moment(row.diffs[i].CreatedAt).isSame(date, 'day')
+                ) {
+                    const transform = 'translate(' +
+                        `${(dateStart * cellStrideX)}px, ` +
+                        `${iRow * cellStrideY - 15}px` +
+                    ')'
+
+                    value.push({
+                        key: row.diffs[dateStart].Id,
+                        date,
+                        slideLimit: (i - dateStart - 1) * cellStrideX,
+                        style: { width: '100%', transform },
+                    })
+
+                    break
+                }
+
+                i++
+            } while (true)
+        }
+    })
+    
+    return value
 })
 
 const graph = computed(() => {
@@ -103,10 +212,8 @@ const graph = computed(() => {
     const cells = new Map()
 
     grid.forEach((row, r) =>
-        row.diffs.forEach((item, c) => {
-            if (!item?.diff) return
-
-            const diff = item.diff
+        row.diffs.forEach((diff, c) => {
+            if (!diff) return
 
             cells.set(diff.Id, { diff, r, c })
         }),
@@ -165,22 +272,14 @@ const visibleCells = computed(() => {
 
     for (const row of virtualRows.value) {
         for (const col of virtualCols.value) {
-            const cell = cellAt(row.index, col.index)
+            const diff = cellAt(row.index, col.index)
 
-            if (!cell) continue
+            if (!diff) continue
 
             cells.push({
-                ...cell,
                 key: `${row.key}-${col.key}`,
-                branchStyle: {
-                    width: `${cell.branchSpace * cellStrideX}px`,
-                    transform: `translate(${col.start}px, ${row.start - 27}px)`,
-                },
-                dateStyle: {
-                    width: `${cellWidth}px`,
-                    transform: `translate(${col.start}px, ${row.start - 15}px)`,
-                },
-                nodeStyle: {
+                diff,
+                style: {
                     transform: `translate(${col.start}px, ${row.start}px)`,
                 },
             })
@@ -376,70 +475,7 @@ function positionBranches(data) {
         }
     }
 
-    // Map data
-    return data.map((row) => ({
-        key: row.ids[0],
-        diffs: _.map(row.diffs, (diff, diffIndex) => {
-            if (!diff || diff.spacer) return null
-
-            const previousDiff = row.diffs[diffIndex - 1]
-
-            const firstDiffInBranch = diffIndex == 0 || previousDiff?.spacer
-
-            // Get branch info
-            // TODO: Continue calculating here for spacer info, but move to separate array to reduce nulls
-            let branchName = null
-            let branchSpace = null // TODO: Remove this
-            let branchLength = null
-            let branchTrailingSpace = null
-
-            if (firstDiffInBranch) {
-                // Name
-                branchName = _.find(props.branches, {
-                    FirstDiffId: diff.Id,
-                }).Name
-
-                let i = diffIndex + 1
-
-                // Length
-                while (true) {
-                    const cell = row.diffs[i]
-
-                    if (!cell || cell.spacer) break
-
-                    i++
-                }
-
-                branchLength = i - diffIndex
-
-                // Empty space after
-                for (; !row.diffs[i] && i < row.diffs.length; i++) {}
-
-                branchTrailingSpace = i - branchLength - diffIndex
-
-
-                // branchSpace = 0
-
-                // while (true) {
-                //     const next = diffIndex + ++branchSpace
-
-                //     if (row.diffs[next]?.spacer) break
-
-                //     if (row.diffs.length <= next - 2) {
-                //         branchSpace = -1
-                //         break
-                //     }
-                // }
-            }
-
-            // Get date info
-            const showDate =
-                firstDiffInBranch ||
-                !moment(diff.CreatedAt).isSame(previousDiff.CreatedAt, 'day')
-
-            return { diff, branchName, branchLength, branchTrailingSpace, showDate }
-        }),
-    }))
+    return data
 }
 
 function cellAt(row, col) {
