@@ -2,9 +2,7 @@ using System.Reflection;
 using EmbedIO;
 using EmbedIO.WebApi;
 
-namespace Api;
-
-public static class LocalServer {
+public static class ApiServer {
     static WebServer? Server;
 
     public static void Start() => Task.Run(async () => StartAsync());
@@ -24,8 +22,7 @@ public static class LocalServer {
             RegisterAllControllers(module);
 
             await Server.WithCors().WithModule(module).RunAsync();
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             System.Diagnostics.Debug.WriteLine(
                 $"Local server error: {e.Message}"
             );
